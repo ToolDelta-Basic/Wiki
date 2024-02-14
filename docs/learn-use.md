@@ -12,7 +12,7 @@
 
 # <span id="启动ToolDelta"><font color="FFAA00" size=4>ToolDelta， 启动！</font></span>
 Windows: 双击所获得的 exe 文件即可.  
-Linux: 输入 ./ToolDelta 即可.  
+Linux: 输入 `./ToolDelta` 即可.  
 将会出现类似如下界面:
 ```
 [15:00]  加载  ToolDelta 正在启动..
