@@ -6,7 +6,7 @@
 
 ## 下载 ToolDelta
 
-| [Windows 用户点我](https://tdload.tblstudio.cn/github.com/ToolDelta/ToolDelta/releases/download/0.5.9/ToolDelta-windows.exe) | [Linux 用户点我](https://tdload.tblstudio.cn/github.com/ToolDelta/ToolDelta/releases/download/0.5.9/ToolDelta-linux) |
+| [Windows 用户点我](https://tdload.tblstudio.cn/github.com/ToolDelta/ToolDelta/releases/download/0.5.11/ToolDelta-windows.exe) | [Linux 用户点我](https://tdload.tblstudio.cn/github.com/ToolDelta/ToolDelta/releases/download/0.5.11/ToolDelta-linux) |
 | -- | -- |
 
 安卓手机用户请使用 Termux 运行这段命令：
