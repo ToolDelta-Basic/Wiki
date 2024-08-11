@@ -1,7 +1,7 @@
 # 👋 欢迎来到 ToolDelta Wiki
 > 不看 Wiki 的 罚他不准玩原神一年 (
 
-### [点我直接跳转到ToolDelta教程页](https://tooldelta-wiki.tblstudio.cn/learn_use.html)
+### [点我直接跳转到ToolDelta教程页](https://td-wiki.whiteleaf.cn/learn_use.html)
 
 欢迎来到我们的官方 Wiki 页面！这里是一个为您提供帮助、指南中心。我们致力于为每一位用户提供一个愉快和充满乐趣的使用体验，而这个 Wiki 正是为此而存在的。
 作为一个为《我的世界：中国版》手机版租赁服提供组件/伪插件加载功能的插件加载器，我们会在~~网易我的世界租赁服系统被关闭~~之前一直提供更新，保持更新进度。
