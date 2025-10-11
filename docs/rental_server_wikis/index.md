@@ -9,3 +9,4 @@
 | 租赁服名 | 服号 | 租赁服群链接 |
 | --- | --- | --- |
 | [FB机器人测试服](/rental_server_wikis/48285363/) | 48285363 | 无 |
+| [StarCity 空岛生存](https://www.starcity.ink/) | 13018869 | [494453644](https://qm.qq.com/q/xoe7G4ffrO) |
