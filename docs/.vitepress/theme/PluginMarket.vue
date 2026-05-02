@@ -196,6 +196,7 @@ const currentItem = ref(null)
 const modalParentItem = ref(null)
 const copiedStates = reactive({})  // Use reactive for object property reactivity
 let modalResetTimer = null
+let queryTargetOpened = false
 
 const PRIMARY_MARKET_BASE_URL = 'https://pm.tooldelta.top'
 const GITHUB_RAW_MARKET_BASE_URL = 'https://raw.githubusercontent.com/ToolDelta-Basic/PluginMarket/refs/heads/main'
@@ -525,6 +526,7 @@ const showFullDescription = (item) => {
 
 const openQueryTargetModal = () => {
   if (typeof window === 'undefined') return false
+  if (queryTargetOpened) return false
   const params = new URLSearchParams(window.location.search)
   const pluginId = params.get('plugin')
   const packageName = params.get('package')
@@ -537,6 +539,7 @@ const openQueryTargetModal = () => {
   })
 
   if (!target) return false
+  queryTargetOpened = true
   showFullDescription(target)
   return true
 }

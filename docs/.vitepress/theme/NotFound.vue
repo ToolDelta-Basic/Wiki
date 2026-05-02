@@ -571,7 +571,7 @@ const createWelcomeLines = () => welcomeTexts.map((text) => mcLine(text, 'menu')
 const createToolDeltaConsoleHelpLines = (): ScriptLine[] => [
   tdLogLine('info', '§a以下是可选的菜单指令项: '),
   tdLogLine('info', ' §e? 或 help 或 帮助 或 ？  §f->  查询可用菜单指令'),
-  tdLogLine('info', ' §eexit  §f->  退出并关闭ToolDelta'),
+  tdLogLine('info', ' §eexit  §f->  退出并返回启动菜单'),
   tdLogLine('info', ' §e插件市场  §f->  进入插件市场'),
 ]
 
@@ -1228,7 +1228,12 @@ const submitCommand = async () => {
     return
   }
 
-  if (normalized === 'fastbuilder') {
+  if (
+    normalized === 'fastbuilder' &&
+    !isToolDeltaMenuActive.value &&
+    !isToolDeltaRunning.value &&
+    !isPluginMarketActive.value
+  ) {
     terminalLines.value = []
     isFastBuilderStarted.value = true
     isToolDeltaMenuActive.value = false
