@@ -33,6 +33,13 @@ export default defineConfig({
 
     themeConfig: {
         logo: { src: '/ico.svg', width: 24, height: 24 },
+        notFound: {
+            code: "404",
+            title: "页面没有找到",
+            quote: "这里还没有对应的文档。你可以返回首页，或从导航栏继续查找 ToolDelta 的使用与插件开发内容。",
+            linkLabel: "返回 ToolDelta Wiki 首页",
+            linkText: "返回首页",
+        },
         search: {
             provider: "local",
             options: {

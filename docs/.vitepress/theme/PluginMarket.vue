@@ -26,18 +26,20 @@
     <!-- Loading Skeleton -->
     <div v-if="loading" class="plugin-grid">
       <div v-for="n in 6" :key="n" class="plugin-card skeleton-card">
-        <div class="card-main">
-          <div class="card-header">
-            <div class="skeleton-icon"></div>
-            <div class="title-wrapper">
-              <div class="skeleton-line w-60"></div>
-              <div class="skeleton-line w-40 small"></div>
+        <div class="plugin-card-surface">
+          <div class="card-main">
+            <div class="card-header">
+              <div class="skeleton-icon"></div>
+              <div class="title-wrapper">
+                <div class="skeleton-line w-60"></div>
+                <div class="skeleton-line w-40 small"></div>
+              </div>
             </div>
+            <div class="skeleton-line w-100"></div>
+            <div class="skeleton-line w-80"></div>
           </div>
-          <div class="skeleton-line w-100"></div>
-          <div class="skeleton-line w-80"></div>
+          <div class="skeleton-footer"></div>
         </div>
-        <div class="skeleton-footer"></div>
       </div>
     </div>
 
@@ -57,37 +59,39 @@
           :class="{ 'is-package': item.isPackage }"
           @click="showFullDescription(item)"
         >
-          <div class="card-main">
-            <div class="card-header">
-              <div class="icon-wrapper">
-                <span v-if="item.isPackage">📦</span>
-                <span v-else>🧩</span>
+          <div class="plugin-card-surface">
+            <div class="card-main">
+              <div class="card-header">
+                <div class="icon-wrapper">
+                  <span v-if="item.isPackage">📦</span>
+                  <span v-else>🧩</span>
+                </div>
+                <div class="title-wrapper">
+                  <div class="plugin-name">{{ item.name.replace('[整合包] ', '') }}</div>
+                  <div class="plugin-author">by {{ item.author }}</div>
+                </div>
               </div>
-              <div class="title-wrapper">
-                <div class="plugin-name">{{ item.name.replace('[整合包] ', '') }}</div>
-                <div class="plugin-author">by {{ item.author }}</div>
+
+              <div class="card-body">
+                <div
+                  class="plugin-description"
+                  v-html="parseMinecraftColor(item.description || '暂无描述')"
+                ></div>
               </div>
             </div>
 
-            <div class="card-body">
-              <div
-                class="plugin-description"
-                v-html="parseMinecraftColor(item.description || '暂无描述')"
-              ></div>
-            </div>
-          </div>
-
-          <div class="card-footer">
-            <span class="version-tag">v{{ item.version }}</span>
-            <div class="footer-actions">
-              <button class="action-btn copy-btn" @click.stop="handleCopy(item)" :class="{ 'copied': copiedStates[getCopyStateKey(item)] }">
-                <span v-if="copiedStates[getCopyStateKey(item)]">✓ 已复制</span>
-                <span v-else>📋 复制指令</span>
-              </button>
-              <button class="action-btn" @click.stop="openGithub(item)">
-                源码
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-              </button>
+            <div class="card-footer">
+              <span class="version-tag">v{{ item.version }}</span>
+              <div class="footer-actions">
+                <button class="action-btn copy-btn" @click.stop="handleCopy(item)" :class="{ 'copied': copiedStates[getCopyStateKey(item)] }">
+                  <span v-if="copiedStates[getCopyStateKey(item)]">✓ 已复制</span>
+                  <span v-else>📋 复制指令</span>
+                </button>
+                <button class="action-btn" @click.stop="openGithub(item)">
+                  源码
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -106,7 +110,7 @@
                 <span class="modal-subtitle">by {{ currentItem?.author }}</span>
               </div>
             </div>
-            <button class="modal-close" @click="closeModal">
+            <button class="modal-close" @click="goBackOrCloseModal">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
@@ -148,8 +152,14 @@
               <div v-else class="included-plugins-list">
                 <div
                   v-for="plugin in currentItem.includedPlugins"
-                  :key="plugin.name"
+                  :key="plugin.pluginId || plugin.name"
                   class="included-plugin-item"
+                  :class="{ 'is-clickable': canOpenIncludedPlugin(plugin) }"
+                  :tabindex="canOpenIncludedPlugin(plugin) ? 0 : undefined"
+                  :role="canOpenIncludedPlugin(plugin) ? 'button' : undefined"
+                  @click.stop="showIncludedPlugin(plugin)"
+                  @keydown.enter.prevent="showIncludedPlugin(plugin)"
+                  @keydown.space.prevent="showIncludedPlugin(plugin)"
                 >
                   <div class="plugin-info">
                     <span class="included-plugin-name">{{ plugin.name }}</span>
@@ -170,32 +180,6 @@
         </div>
       </div>
     </Transition>
-
-    <!-- Install Warning Modal -->
-    <Transition name="modal-fade">
-      <div v-if="warningVisible" class="modal-overlay" @click="warningVisible = false">
-        <div class="modal-content warning-modal" @click.stop>
-          <div class="modal-header">
-            <h3>⚠️ 安装前必读</h3>
-            <button class="modal-close" @click="warningVisible = false">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-          </div>
-          <div class="modal-body">
-            <p class="warning-text"><strong>当前 ToolDelta 框架尚未内置此功能。</strong></p>
-            <p class="warning-text">使用快捷安装指令前，请确保您已手动安装了 <strong>"插件快捷安装"</strong> 插件。</p>
-            <div class="command-preview">
-              <code>{{ getInstallCmd(pendingCmdItem) }}</code>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="primary-btn full-width" @click="confirmWarning">
-              我知道了,复制指令
-            </button>
-          </div>
-        </div>
-      </div>
-    </Transition>
   </div>
 </template>
 
@@ -209,10 +193,62 @@ const pluginFolderMap = ref({})    // display name -> folder path for GitHub/ass
 const searchQuery = ref('')
 const modalVisible = ref(false)
 const currentItem = ref(null)
-const warningVisible = ref(false)
-const pendingCmdItem = ref(null)
+const modalParentItem = ref(null)
 const copiedStates = reactive({})  // Use reactive for object property reactivity
 let modalResetTimer = null
+let queryTargetOpened = false
+
+const PRIMARY_MARKET_BASE_URL = 'https://pm.tooldelta.top'
+const GITHUB_RAW_MARKET_BASE_URL = 'https://raw.githubusercontent.com/ToolDelta-Basic/PluginMarket/refs/heads/main'
+
+const normalizeBaseUrl = (baseUrl) => baseUrl.replace(/\/$/, '')
+const encodeMarketPath = (path) => String(path).split('/').map(encodeURIComponent).join('/')
+const getMarketFileUrl = (baseUrl, path) => `${normalizeBaseUrl(baseUrl)}/${encodeMarketPath(path)}`
+
+const fetchJson = async (url) => {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} while loading ${url}`)
+  }
+  return response.json()
+}
+
+const resolveMarketBaseUrl = async () => {
+  try {
+    const response = await fetch(`${PRIMARY_MARKET_BASE_URL}/`, { cache: 'no-store' })
+    if (response.status === 403) {
+      console.warn('Primary plugin market returned 403, using GitHub raw source.')
+      return GITHUB_RAW_MARKET_BASE_URL
+    }
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return PRIMARY_MARKET_BASE_URL
+  } catch (error) {
+    console.warn('Primary plugin market unavailable, using GitHub raw source:', error)
+    return GITHUB_RAW_MARKET_BASE_URL
+  }
+}
+
+const loadMarketSource = async () => {
+  const marketBaseUrl = await resolveMarketBaseUrl()
+
+  try {
+    const [data, pluginIdsMap] = await Promise.all([
+      fetchJson(getMarketFileUrl(marketBaseUrl, 'market_tree.json')),
+      fetchJson(getMarketFileUrl(marketBaseUrl, 'plugin_ids_map.json'))
+    ])
+    return { data, pluginIdsMap, marketBaseUrl }
+  } catch (error) {
+    if (marketBaseUrl === GITHUB_RAW_MARKET_BASE_URL) throw error
+    console.warn('Primary plugin market data failed, using GitHub raw source:', error)
+    const [data, pluginIdsMap] = await Promise.all([
+      fetchJson(getMarketFileUrl(GITHUB_RAW_MARKET_BASE_URL, 'market_tree.json')),
+      fetchJson(getMarketFileUrl(GITHUB_RAW_MARKET_BASE_URL, 'plugin_ids_map.json'))
+    ])
+    return { data, pluginIdsMap, marketBaseUrl: GITHUB_RAW_MARKET_BASE_URL }
+  }
+}
 
 // Minecraft Color Maps
 const colorMaps = {
@@ -231,15 +267,79 @@ const cardRects = new Map()
 let mouseMoveRaf = null
 let rectUpdateRaf = null
 let cardsObserver = null
+let isMouseInGrid = false
+let activeHoverCard = null
 const mousePos = { x: 0, y: 0 }
 const MOUSE_THRESHOLD = 350
+
+const getCardSurface = (card) => card.querySelector('.plugin-card-surface') || card
+
+const isPointInRect = (x, y, rect) =>
+  x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
+
+const updateCardRects = () => {
+  for (const card of visibleCards) {
+    cardRects.set(card, getCardSurface(card).getBoundingClientRect())
+  }
+}
+
+const clearCardInteraction = () => {
+  if (activeHoverCard) {
+    activeHoverCard.classList.remove('hover-active')
+    activeHoverCard = null
+  }
+  for (const card of visibleCards) {
+    card.classList.remove('glow-active', 'hover-active')
+  }
+}
+
+const syncMouseGridState = () => {
+  if (!gridContainer.value) return false
+  isMouseInGrid = isPointInRect(mousePos.x, mousePos.y, gridContainer.value.getBoundingClientRect())
+  if (!isMouseInGrid) clearCardInteraction()
+  return isMouseInGrid
+}
+
+const updateGlowForMouse = () => {
+  const { x, y } = mousePos
+  let nextHoverCard = null
+
+  for (const card of visibleCards) {
+    const rect = cardRects.get(card)
+    if (!rect) continue
+    const surface = getCardSurface(card)
+    const isPointerOverCard = isPointInRect(x, y, rect)
+    const cardCenterX = rect.left + rect.width / 2
+    const cardCenterY = rect.top + rect.height / 2
+    const dist = Math.hypot(x - cardCenterX, y - cardCenterY)
+
+    if (isPointerOverCard && !nextHoverCard) nextHoverCard = card
+
+    if (dist < MOUSE_THRESHOLD) {
+      surface.style.setProperty('--mouse-x', `${x - rect.left}px`)
+      surface.style.setProperty('--mouse-y', `${y - rect.top}px`)
+      card.classList.add('glow-active')
+    } else {
+      card.classList.remove('glow-active')
+    }
+  }
+
+  if (activeHoverCard && activeHoverCard !== nextHoverCard) {
+    activeHoverCard.classList.remove('hover-active')
+  }
+
+  activeHoverCard = nextHoverCard
+
+  for (const card of visibleCards) {
+    card.classList.toggle('hover-active', card === activeHoverCard)
+  }
+}
 
 const scheduleRectUpdate = () => {
   if (rectUpdateRaf) return
   rectUpdateRaf = requestAnimationFrame(() => {
-    for (const card of visibleCards) {
-      cardRects.set(card, card.getBoundingClientRect())
-    }
+    updateCardRects()
+    if (syncMouseGridState()) updateGlowForMouse()
     rectUpdateRaf = null
   })
 }
@@ -253,11 +353,15 @@ const setupCardObserver = () => {
     for (const entry of entries) {
       if (entry.isIntersecting) {
         visibleCards.add(entry.target)
-        cardRects.set(entry.target, entry.target.getBoundingClientRect())
+        cardRects.set(entry.target, getCardSurface(entry.target).getBoundingClientRect())
       } else {
+        entry.target.classList.remove('glow-active', 'hover-active')
+        if (entry.target === activeHoverCard) activeHoverCard = null
         visibleCards.delete(entry.target)
+        cardRects.delete(entry.target)
       }
     }
+    if (isMouseInGrid) scheduleRectUpdate()
   }, { root: null, rootMargin: '200px' })
 
   gridContainer.value.querySelectorAll('.plugin-card').forEach(card => cardsObserver.observe(card))
@@ -265,37 +369,25 @@ const setupCardObserver = () => {
 }
 
 const onMouseMove = (e) => {
-  if (!visibleCards.size) return
+  isMouseInGrid = true
   mousePos.x = e.clientX
   mousePos.y = e.clientY
+  if (!visibleCards.size) {
+    clearCardInteraction()
+    return
+  }
   if (mouseMoveRaf) return
 
   mouseMoveRaf = requestAnimationFrame(() => {
-    const { x, y } = mousePos
-
-    for (const card of visibleCards) {
-      const rect = cardRects.get(card)
-      if (!rect) continue
-      const cardCenterX = rect.left + rect.width / 2
-      const cardCenterY = rect.top + rect.height / 2
-      const dist = Math.hypot(x - cardCenterX, y - cardCenterY)
-
-      if (dist < MOUSE_THRESHOLD) {
-        card.style.setProperty('--mouse-x', `${x - rect.left}px`)
-        card.style.setProperty('--mouse-y', `${y - rect.top}px`)
-        card.classList.add('glow-active')
-      } else {
-        card.classList.remove('glow-active')
-      }
-    }
+    updateCardRects()
+    updateGlowForMouse()
     mouseMoveRaf = null
   })
 }
 
 const onMouseLeave = () => {
-  for (const card of visibleCards) {
-    card.classList.remove('glow-active')
-  }
+  isMouseInGrid = false
+  clearCardInteraction()
 }
 
 const onScrollOrResize = () => scheduleRectUpdate()
@@ -366,35 +458,33 @@ const getCopyStateKey = (item) => {
   return `${item.isPackage ? 'pkg' : 'plugin'}_${installId}`
 }
 
-const handleCopy = (item) => {
-  try {
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('td_install_cmd_warning_shown')) {
-      executeCopy(item)
-    } else {
-      pendingCmdItem.value = item
-      warningVisible.value = true
-    }
-  } catch (err) {
-    // localStorage might be disabled (Safari private mode, etc.)
-    console.warn('localStorage unavailable, showing warning anyway:', err)
-    pendingCmdItem.value = item
-    warningVisible.value = true
-  }
+const getIncludedPluginDetail = (plugin) => {
+  if (!plugin) return null
+  return itemList.value.find(item =>
+    !item.isPackage &&
+    (
+      (plugin.pluginId && item.pluginId === plugin.pluginId) ||
+      (plugin.name && item.name === plugin.name)
+    )
+  ) || null
 }
 
-const confirmWarning = () => {
-  try {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('td_install_cmd_warning_shown', 'true')
-    }
-  } catch (err) {
-    console.warn('Could not save warning preference:', err)
+const canOpenIncludedPlugin = (plugin) => Boolean(getIncludedPluginDetail(plugin))
+
+const showIncludedPlugin = (plugin) => {
+  const detail = getIncludedPluginDetail(plugin)
+  if (!detail) return
+  if (currentItem.value?.isPackage) {
+    modalParentItem.value = currentItem.value
   }
-  warningVisible.value = false
-  if (pendingCmdItem.value) {
-    executeCopy(pendingCmdItem.value)
-    pendingCmdItem.value = null
-  }
+  currentItem.value = detail
+  nextTick(() => {
+    document.querySelector('.modal-content .modal-body')?.scrollTo({ top: 0 })
+  })
+}
+
+const handleCopy = (item) => {
+  executeCopy(item)
 }
 
 const executeCopy = async (item) => {
@@ -429,12 +519,51 @@ const openGithub = (item) => {
 
 const showFullDescription = (item) => {
   if (modalResetTimer) clearTimeout(modalResetTimer)
+  modalParentItem.value = null
   currentItem.value = item
   modalVisible.value = true
 }
 
+const openQueryTargetModal = () => {
+  if (typeof window === 'undefined') return false
+  if (queryTargetOpened) return false
+  const params = new URLSearchParams(window.location.search)
+  const pluginId = params.get('plugin')
+  const packageName = params.get('package')
+
+  if (!pluginId && !packageName) return false
+
+  const target = itemList.value.find(item => {
+    if (pluginId) return !item.isPackage && item.pluginId === pluginId
+    return item.isPackage && item.originalName === packageName
+  })
+
+  if (!target) return false
+  queryTargetOpened = true
+  showFullDescription(target)
+  return true
+}
+
+watch(itemList, () => {
+  if (!modalVisible.value) nextTick(openQueryTargetModal)
+}, { flush: 'post' })
+
+const goBackOrCloseModal = () => {
+  if (!modalParentItem.value) {
+    closeModal()
+    return
+  }
+
+  currentItem.value = modalParentItem.value
+  modalParentItem.value = null
+  nextTick(() => {
+    document.querySelector('.modal-content .modal-body')?.scrollTo({ top: 0 })
+  })
+}
+
 const closeModal = () => {
   modalVisible.value = false
+  modalParentItem.value = null
   modalResetTimer = setTimeout(() => currentItem.value = null, 300)
 }
 
@@ -449,68 +578,63 @@ onMounted(() => {
   })
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 
-  fetch('https://pm.tooldelta.top/market_tree.json')
-    .then(r => r.json())
-    .then(data => {
-      return fetch('https://pm.tooldelta.top/plugin_ids_map.json')
-        .then(r => r.json())
-        .then(pluginIdsMap => {
-          const packages = Object.entries(data.Packages).map(([key, val]) => {
-            const displayName = `[整合包] ${key}`
-            pluginNameMap.value[displayName] = key
-            return {
-              name: displayName,
-              originalName: key,
-              author: val.author,
-              version: val.version,
-              description: val.description,
-              isPackage: true,
-              includedPlugins: (val['plugin-ids'] || []).map(id => {
-                const p = data.MarketPlugins[id]
-                return p
-                  ? { name: p.name, author: p.author, version: p.version }
-                  : { name: id, author: '未知', version: '?' }
-              })
+  loadMarketSource()
+    .then(({ data, pluginIdsMap, marketBaseUrl }) => {
+      const packages = Object.entries(data.Packages).map(([key, val]) => {
+        const displayName = `[整合包] ${key}`
+        pluginNameMap.value[displayName] = key
+        return {
+          name: displayName,
+          originalName: key,
+          author: val.author,
+          version: val.version,
+          description: val.description,
+          isPackage: true,
+          includedPlugins: (val['plugin-ids'] || []).map(id => {
+            const p = data.MarketPlugins[id]
+            return p
+              ? { name: p.name, author: p.author, version: p.version, pluginId: id }
+              : { name: id, author: '未知', version: '?', pluginId: id }
+          })
+        }
+      })
+
+      const plugins = []
+      const descTasks = []
+
+      for (const pluginId in data.MarketPlugins) {
+        const info = data.MarketPlugins[pluginId]
+        const folderName = pluginIdsMap[pluginId]
+        if (folderName) {
+          pluginNameMap.value[info.name] = pluginId
+          pluginFolderMap.value[info.name] = folderName
+          plugins.push({ ...info, pluginId, description: '加载中...', isPackage: false })
+          const targetIndex = packages.length + plugins.length - 1
+          descTasks.push({ targetIndex, folderName })
+        }
+      }
+
+      itemList.value = [...packages, ...plugins]
+      loading.value = false
+      nextTick(openQueryTargetModal)
+
+      descTasks.forEach(({ targetIndex, folderName }) => {
+        fetchJson(getMarketFileUrl(marketBaseUrl, `${folderName}/datas.json`))
+          .then(d => {
+            const next = [...itemList.value]
+            if (next[targetIndex]) {
+              next[targetIndex] = { ...next[targetIndex], description: d.description || '暂无描述' }
+              itemList.value = next
             }
           })
-
-          const plugins = []
-          const descTasks = []
-
-          for (const pluginId in data.MarketPlugins) {
-            const info = data.MarketPlugins[pluginId]
-            const folderName = pluginIdsMap[pluginId]
-            if (folderName) {
-              pluginNameMap.value[info.name] = pluginId
-              pluginFolderMap.value[info.name] = folderName
-              plugins.push({ ...info, pluginId, description: '加载中...', isPackage: false })
-              const targetIndex = packages.length + plugins.length - 1
-              descTasks.push({ targetIndex, folderName })
+          .catch(() => {
+            const next = [...itemList.value]
+            if (next[targetIndex]) {
+              next[targetIndex] = { ...next[targetIndex], description: '暂无描述' }
+              itemList.value = next
             }
-          }
-
-          itemList.value = [...packages, ...plugins]
-          loading.value = false
-
-          descTasks.forEach(({ targetIndex, folderName }) => {
-            fetch(`https://pm.tooldelta.top/${folderName}/datas.json`)
-              .then(r => r.json())
-              .then(d => {
-                const next = [...itemList.value]
-                if (next[targetIndex]) {
-                  next[targetIndex] = { ...next[targetIndex], description: d.description || '暂无描述' }
-                  itemList.value = next
-                }
-              })
-              .catch(() => {
-                const next = [...itemList.value]
-                if (next[targetIndex]) {
-                  next[targetIndex] = { ...next[targetIndex], description: '暂无描述' }
-                  itemList.value = next
-                }
-              })
           })
-        })
+      })
     })
     .catch(e => {
       console.error('Failed to load market data:', e)
@@ -630,18 +754,27 @@ onUnmounted(() => {
 /* Card */
 .plugin-card {
   position: relative;
-  background: var(--vp-c-bg);
-  border: 1px solid var(--vp-c-divider);
   border-radius: 12px;
-  transition: all 0.25s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
+.plugin-card-surface {
+  position: relative;
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: inherit;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+}
+
 /* Spotlight Border Glow */
-.plugin-card::before {
+.plugin-card-surface::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -663,17 +796,16 @@ onUnmounted(() => {
   will-change: opacity;
 }
 
-.plugin-card.glow-active:not(:hover)::before {
+.plugin-card.glow-active:not(.hover-active) .plugin-card-surface::before {
   opacity: 1;
 }
 
-.plugin-card:hover {
-  transform: translateY(-4px);
+.plugin-card.hover-active .plugin-card-surface {
   border-color: var(--vp-c-brand);
   box-shadow: 0 12px 24px -10px rgba(0,0,0,0.1);
 }
 
-.dark .plugin-card:hover {
+.dark .plugin-card.hover-active .plugin-card-surface {
   box-shadow: 0 12px 24px -10px rgba(0,0,0,0.4);
 }
 
@@ -805,10 +937,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--vp-c-divider);
-}
-
-.warning-modal {
-  max-width: 450px;
 }
 
 .modal-header {
@@ -967,6 +1095,17 @@ onUnmounted(() => {
   border-color: var(--vp-c-brand);
 }
 
+.included-plugin-item.is-clickable {
+  cursor: pointer;
+}
+
+.included-plugin-item.is-clickable:hover,
+.included-plugin-item.is-clickable:focus-visible {
+  border-color: var(--vp-c-brand);
+  background: var(--vp-c-bg-soft);
+  outline: none;
+}
+
 .plugin-info {
   display: flex;
   flex-direction: column;
@@ -1016,27 +1155,6 @@ onUnmounted(() => {
 
 .primary-btn:hover {
   background: var(--vp-c-brand-dark);
-}
-
-.full-width {
-  width: 100%;
-  justify-content: center;
-}
-
-.warning-text {
-  margin-bottom: 12px;
-  line-height: 1.6;
-}
-
-.command-preview {
-  margin-top: 16px;
-  padding: 12px;
-  background: var(--vp-c-bg-alt);
-  border-radius: 8px;
-  font-family: var(--vp-font-family-mono);
-  font-size: 13px;
-  word-break: break-all;
-  border: 1px solid var(--vp-c-divider);
 }
 
 /* Skeleton */
